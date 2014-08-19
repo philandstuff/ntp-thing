@@ -1,5 +1,7 @@
+import           Control.Monad            (liftM)
 import           Network.BSD
-import qualified Network.Socket as NS
+import qualified Network.Socket     as NS
+import           System.Environment       (getEnv)
 
 hostSocketAddress host port = do
   hostEntry <- getHostByName host
@@ -11,5 +13,7 @@ sendMessage socketAddress message = do
 
 
 main = do
-  addr <- hostSocketAddress "localhost" 1025
+  host <- getEnv "HOST"
+  port <- liftM read $ getEnv "PORT"
+  addr <- hostSocketAddress host (toEnum port)
   sendMessage addr "hello"
