@@ -1,6 +1,6 @@
 import           Control.Exception        (bracket)
 import           Control.Monad            (liftM)
-import           Data.Binary.Put (Put, putWord32be, runPut)
+import           Data.Binary.Put (Put, putWord8, putWord16be, putWord32be, runPut)
 import qualified Data.ByteString       as B
 import qualified Data.ByteString.Lazy  as BL
 import           Data.Word        (Word32)
@@ -28,20 +28,19 @@ emptyPacket :: B.ByteString
 emptyPacket = B.concat $
               BL.toChunks $
               runPut $
-              do putWord32be 0
-                 putWord32be 0
-                 putWord32be 0
-                 putWord32be 0
-                 putTimestamp $ epoch
-                 putTimestamp $ epoch
-                 putTimestamp $ epoch
-                 putTimestamp $ epoch
+              do putWord8 0x16 -- ntpv2, control message
+                 putWord8 0x01 -- "read status" operation
+                 putWord16be 1 -- sequence number
+                 putWord16be 0 -- "status"
+                 putWord16be 0 -- "association id"
+                 putWord16be 0 -- "offset"
+                 putWord16be 0 -- "count"
 
 epoch = Timestamp 0 0
 
 main = do
   host <- getEnvDefault "HOST" "localhost"
-  port <- liftM read $ getEnvDefault "PORT" "1025"
+  port <- liftM read $ getEnvDefault "PORT" "123"
   addr <- hostSocketAddress host (toEnum port)
   withUdpSocket
     (\ socket ->
