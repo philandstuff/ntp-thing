@@ -28,13 +28,17 @@ emptyPacket :: B.ByteString
 emptyPacket = B.concat $
               BL.toChunks $
               runPut $
-              do putWord8 0x16 -- ntpv2, control message
-                 putWord8 0x01 -- "read status" operation
-                 putWord16be 1 -- sequence number
-                 putWord16be 0 -- "status"
-                 putWord16be 0 -- "association id"
-                 putWord16be 0 -- "offset"
-                 putWord16be 0 -- "count"
+              do putWord8 0x13 -- ntpv2, client
+                 putWord8 0x10 -- stratum 16, unsynced
+                 putWord8 16   -- min poll interval
+                 putWord8 0    -- precision
+                 putWord32be 0 -- sync distance
+                 putWord32be 0 -- sync dispersion
+                 putWord32be 0 -- ref id
+                 putTimestamp epoch -- reference
+                 putTimestamp epoch -- originate
+                 putTimestamp epoch -- receive
+                 putTimestamp epoch -- transmit
 
 epoch = Timestamp 0 0
 
