@@ -1,12 +1,11 @@
 import           Control.Exception        (bracket)
 import           Control.Monad            (liftM)
 import           Data.Binary.Put (Put, putWord8, putWord16be, putWord32be, runPut)
-import qualified Data.ByteString       as B
 import qualified Data.ByteString.Lazy  as BL
 import           Data.Word        (Word32)
 import           Network.BSD
 import qualified Network.Socket            as NS
-import qualified Network.Socket.ByteString as NB
+import qualified Network.Socket.ByteString.Lazy as NB
 import           System.Posix.Env (getEnvDefault)
 
 hostSocketAddress host port = do
@@ -26,10 +25,8 @@ data Timestamp = Timestamp Word32 Word32
 putTimestamp :: Timestamp -> Put
 putTimestamp (Timestamp i f) = putWord32be i >> putWord32be f
 
-emptyPacket :: B.ByteString
-emptyPacket = B.concat $
-              BL.toChunks $
-              runPut $
+emptyPacket :: BL.ByteString
+emptyPacket = runPut $
               do putWord8 0x13 -- ntpv2, client
                  putWord8 0x10 -- stratum 16, unsynced
                  putWord8 16   -- min poll interval
@@ -52,5 +49,5 @@ main = do
                 (\ socket -> do
                     NB.send socket emptyPacket
                     NB.recv socket 1024)
-  putStrLn $ show $ B.unpack recvPacket
+  putStrLn $ show $ BL.unpack recvPacket
   putStrLn $ show recvPacket
