@@ -19,12 +19,6 @@ withUdpSocket =
     (NS.socket NS.AF_INET NS.Datagram NS.defaultProtocol)
     NS.sClose
 
-sendMessage :: NS.SockAddr -> B.ByteString -> IO Int
-sendMessage socketAddress message = do
-  withUdpSocket
-    (\ socket ->
-      NB.sendTo socket message socketAddress)
-
 data Timestamp = Timestamp Word32 Word32
 
 putTimestamp :: Timestamp -> Put
@@ -49,4 +43,7 @@ main = do
   host <- getEnvDefault "HOST" "localhost"
   port <- liftM read $ getEnvDefault "PORT" "1025"
   addr <- hostSocketAddress host (toEnum port)
-  sendMessage addr $ emptyPacket
+  withUdpSocket
+    (\ socket ->
+        NB.sendTo socket emptyPacket addr
+    )
