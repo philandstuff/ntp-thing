@@ -13,10 +13,12 @@ hostSocketAddress host port = do
   hostEntry <- getHostByName host
   return $ NS.SockAddrInet port (hostAddress hostEntry)
 
-withUdpSocket :: (NS.Socket -> IO c) -> IO c
-withUdpSocket =
+withUdpSocket :: NS.SockAddr -> (NS.Socket -> IO c) -> IO c
+withUdpSocket addr =
   bracket
-    (NS.socket NS.AF_INET NS.Datagram NS.defaultProtocol)
+    (do socket <- NS.socket NS.AF_INET NS.Datagram NS.defaultProtocol
+        NS.connect socket addr
+        return socket)
     NS.sClose
 
 data Timestamp = Timestamp Word32 Word32
@@ -46,10 +48,9 @@ main = do
   host <- getEnvDefault "HOST" "localhost"
   port <- liftM read $ getEnvDefault "PORT" "123"
   addr <- hostSocketAddress host (toEnum port)
-  (recvPacket, recvAddr) <- withUdpSocket
-                            (\ socket -> do
-                                NB.sendTo socket emptyPacket addr
-                                NB.recvFrom socket 1024
-                            )
+  recvPacket <- withUdpSocket addr
+                (\ socket -> do
+                    NB.send socket emptyPacket
+                    NB.recv socket 1024)
   putStrLn $ show $ B.unpack recvPacket
   putStrLn $ show recvPacket
