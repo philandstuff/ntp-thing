@@ -30,10 +30,10 @@ emptyPacket = B.concat $
                  putWord32be 0
                  putWord32be 0
                  putWord32be 0
-                 putTimestamp $ Timestamp 0 0
-                 putTimestamp $ Timestamp 0 0
-                 putTimestamp $ Timestamp 0 0
-                 putTimestamp $ Timestamp 0 0
+                 putTimestamp $ epoch
+                 putTimestamp $ epoch
+                 putTimestamp $ epoch
+                 putTimestamp $ epoch
 
 epoch = Timestamp 0 0
 
