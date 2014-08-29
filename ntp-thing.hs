@@ -1,7 +1,7 @@
 import           Control.Exception        (bracket)
-import           Control.Monad            (liftM, liftM4)
+import           Control.Monad            (liftM, liftM2, liftM4)
 import           Data.Binary     (Binary, decode, get, put)
-import           Data.Binary.Get (skip)
+import           Data.Binary.Get (Get, skip)
 import           Data.Binary.Put (Put, putWord8, putWord16be, putWord32be, runPut)
 import qualified Data.ByteString.Lazy  as BL
 import           Data.Word        (Word32)
@@ -27,10 +27,9 @@ data Timestamp = Timestamp Word32 Word32 deriving Show
 putTimestamp :: Timestamp -> Put
 putTimestamp (Timestamp i f) = putWord32be i >> putWord32be f
 
-getTimestamp = do
-  i <- get
-  f <- get
-  return $ Timestamp i f
+getTimestamp :: Get Timestamp
+getTimestamp =
+  liftM2 Timestamp get get
 
 data Ntp2Packet =
   Ntp2SyncPacket { reference :: Timestamp,
