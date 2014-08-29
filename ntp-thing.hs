@@ -1,3 +1,4 @@
+import           Control.Exception        (bracket)
 import           Control.Monad            (liftM)
 import           Data.Binary.Put (Put, putWord32be, runPut)
 import qualified Data.ByteString       as B
@@ -12,10 +13,17 @@ hostSocketAddress host port = do
   hostEntry <- getHostByName host
   return $ NS.SockAddrInet port (hostAddress hostEntry)
 
+withUdpSocket :: (NS.Socket -> IO c) -> IO c
+withUdpSocket =
+  bracket
+    (NS.socket NS.AF_INET NS.Datagram NS.defaultProtocol)
+    NS.sClose
+
 sendMessage :: NS.SockAddr -> B.ByteString -> IO Int
 sendMessage socketAddress message = do
-  sendSocket <- NS.socket NS.AF_INET NS.Datagram NS.defaultProtocol
-  NB.sendTo sendSocket message socketAddress
+  withUdpSocket
+    (\ socket ->
+      NB.sendTo socket message socketAddress)
 
 data Timestamp = Timestamp Word32 Word32
 
