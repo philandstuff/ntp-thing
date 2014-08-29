@@ -1,5 +1,5 @@
 import           Control.Exception        (bracket)
-import           Control.Monad            (liftM)
+import           Control.Monad            (liftM, liftM4)
 import           Data.Binary     (Binary, decode, get, put)
 import           Data.Binary.Get (skip)
 import           Data.Binary.Put (Put, putWord8, putWord16be, putWord32be, runPut)
@@ -43,11 +43,7 @@ instance Binary Ntp2Packet where
   put = undefined
   get = do
     skip 16
-    ref  <- getTimestamp
-    orig <- getTimestamp
-    rx   <- getTimestamp
-    tx   <- getTimestamp
-    return $ Ntp2SyncPacket ref orig rx tx
+    liftM4 Ntp2SyncPacket getTimestamp getTimestamp getTimestamp getTimestamp
 
 emptyPacket :: BL.ByteString
 emptyPacket = runPut $
