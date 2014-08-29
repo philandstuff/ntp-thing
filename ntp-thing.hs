@@ -42,7 +42,10 @@ main = do
   host <- getEnvDefault "HOST" "localhost"
   port <- liftM read $ getEnvDefault "PORT" "123"
   addr <- hostSocketAddress host (toEnum port)
-  withUdpSocket
-    (\ socket ->
-        NB.sendTo socket emptyPacket addr
-    )
+  (recvPacket, recvAddr) <- withUdpSocket
+                            (\ socket -> do
+                                NB.sendTo socket emptyPacket addr
+                                NB.recvFrom socket 1024
+                            )
+  putStrLn $ show $ B.unpack recvPacket
+  putStrLn $ show recvPacket
